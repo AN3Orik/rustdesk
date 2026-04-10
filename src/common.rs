@@ -2816,24 +2816,18 @@ mod tests {
 
     #[test]
     fn test_get_tcp_proxy_addr_normalizes_bare_ipv6_host() {
-        struct RestoreCustomRendezvousServer(String);
+        struct RestoreExeRendezvousServer(String);
 
-        impl Drop for RestoreCustomRendezvousServer {
+        impl Drop for RestoreExeRendezvousServer {
             fn drop(&mut self) {
-                Config::set_option(
-                    keys::OPTION_CUSTOM_RENDEZVOUS_SERVER.to_string(),
-                    self.0.clone(),
-                );
+                *config::EXE_RENDEZVOUS_SERVER.write().unwrap() = self.0.clone();
             }
         }
 
-        let _restore = RestoreCustomRendezvousServer(Config::get_option(
-            keys::OPTION_CUSTOM_RENDEZVOUS_SERVER,
-        ));
-        Config::set_option(
-            keys::OPTION_CUSTOM_RENDEZVOUS_SERVER.to_string(),
-            "1:2".to_string(),
+        let _restore = RestoreExeRendezvousServer(
+            config::EXE_RENDEZVOUS_SERVER.read().unwrap().clone(),
         );
+        *config::EXE_RENDEZVOUS_SERVER.write().unwrap() = "1:2".to_string();
 
         assert_eq!(get_tcp_proxy_addr(), format!("[1:2]:{RENDEZVOUS_PORT}"));
     }
